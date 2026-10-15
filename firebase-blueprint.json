@@ -1,0 +1,29 @@
+{
+  "entities": {
+    "User": {
+      "path": "users/{userId}",
+      "fields": {
+        "userId": { "type": "string", "required": true },
+        "email": { "type": "string", "required": true },
+        "schoolStartDate": { "type": "string", "required": false },
+        "schoolEndDate": { "type": "string", "required": false },
+        "onboardingCompleted": { "type": "boolean", "required": true },
+        "creationDate": { "type": "timestamp", "required": false },
+        "updatedAt": { "type": "timestamp", "required": false }
+      }
+    },
+    "Note": {
+      "path": "users/{userId}/notes/{noteId}",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "userId": { "type": "string", "required": true },
+        "title": { "type": "string", "required": true },
+        "content": { "type": "string", "required": true },
+        "category": { "type": "string", "required": true },
+        "mood": { "type": "string", "required": false },
+        "createdAt": { "type": "timestamp", "required": false },
+        "updatedAt": { "type": "timestamp", "required": false }
+      }
+    }
+  }
+}

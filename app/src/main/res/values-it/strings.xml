@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">PassTheYear</string>
+    <string name="app_tagline">Supporto scolastico, pianificazione e benessere mentale</string>
+    <string name="login_title">Accedi a PassTheYear</string>
+    <string name="signup_title">Crea il tuo account</string>
+    <string name="email_label">Email istituzionale o personale</string>
+    <string name="password_label">Password (minimo 6 caratteri)</string>
+    <string name="confirm_password_label">Conferma Password</string>
+    <string name="login_btn">Accedi</string>
+    <string name="signup_btn">Registrati</string>
+    <string name="forgot_password">Hai dimenticato la password?</string>
+    <string name="reset_password_title">Recupera Password</string>
+    <string name="reset_password_btn">Invia link di reset</string>
+    <string name="no_account">Non hai un account? Registrati</string>
+    <string name="already_account">Hai già un account? Accedi</string>
+    <string name="verification_title">Verifica la tua Email</string>
+    <string name="verification_desc">Ti abbiamo inviato un\'email di verifica all\'indirizzo specificato. Clicca sul link nell\'email prima di poter accedere all\'applicazione.</string>
+    <string name="verification_check_btn">Ho verificato l\'email / Riprova</string>
+    <string name="verification_resend_btn">Invia di nuovo email di verifica</string>
+    <string name="onboarding_title">Pianifica il tuo Anno Scolastico</string>
+    <string name="onboarding_subtitle">Imposta le date per calcolare il conto alla rovescia, i giorni effettivi e il tuo percorso di studio.</string>
+    <string name="school_start_label">Data di Inizio Scuola</string>
+    <string name="school_end_label">Data di Fine Scuola</string>
+    <string name="start_journey_btn">Inizia il tuo percorso</string>
+    <string name="nav_dashboard">Home</string>
+    <string name="nav_months">Mesi</string>
+    <string name="nav_notes">Note</string>
+    <string name="nav_wellness">Benessere</string>
+    <string name="nav_settings">Impostazioni</string>
+    <string name="days_remaining">Giorni alla fine della scuola</string>
+    <string name="school_year_progress">Progresso dell\'anno</string>
+    <string name="actual_school_days">Giorni scolastici stimati</string>
+</resources>

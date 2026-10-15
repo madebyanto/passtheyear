@@ -1,0 +1,6 @@
+{
+  "name": "PassTheYear",
+  "description": "School survival & planner app to reduce academic anxiety, track countdown to the end of school, manage notes, and study wellbeing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

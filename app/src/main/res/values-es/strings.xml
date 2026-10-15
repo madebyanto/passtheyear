@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">PassTheYear</string>
+    <string name="app_tagline">Planificación académica, cuenta atrás escolar y bienestar mental</string>
+    <string name="login_title">Inicia Sesión en PassTheYear</string>
+    <string name="signup_title">Crea tu cuenta</string>
+    <string name="email_label">Correo escolar o personal</string>
+    <string name="password_label">Contraseña (mínimo 6 caracteres)</string>
+    <string name="confirm_password_label">Confirmar Contraseña</string>
+    <string name="login_btn">Iniciar Sesión</string>
+    <string name="signup_btn">Registrarse</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="reset_password_title">Recuperar Contraseña</string>
+    <string name="reset_password_btn">Enviar enlace de recuperación</string>
+    <string name="no_account">¿No tienes cuenta? Regístrate</string>
+    <string name="already_account">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="verification_title">Verifica tu Correo</string>
+    <string name="verification_desc">Te hemos enviado un enlace de verificación. Por favor, pulsa en el enlace antes de entrar.</string>
+    <string name="verification_check_btn">He verificado mi correo / Reintentar</string>
+    <string name="verification_resend_btn">Reenviar correo de verificación</string>
+    <string name="onboarding_title">Configura tu Año Escolar</string>
+    <string name="onboarding_subtitle">Establece las fechas para calcular la cuenta atrás y los días lectivos.</string>
+    <string name="school_start_label">Fecha de Inicio del Curso</string>
+    <string name="school_end_label">Fecha de Fin del Curso</string>
+    <string name="start_journey_btn">Comenzar el curso</string>
+    <string name="nav_dashboard">Inicio</string>
+    <string name="nav_months">Meses</string>
+    <string name="nav_notes">Notas</string>
+    <string name="nav_wellness">Bienestar</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="days_remaining">Días para el fin de las clases</string>
+    <string name="school_year_progress">Progreso del curso</string>
+    <string name="actual_school_days">Días lectivos estimados</string>
+</resources>
