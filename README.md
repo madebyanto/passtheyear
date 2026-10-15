@@ -57,7 +57,6 @@
 | **Navigation** | Navigation Compose |
 | **Auth** | Firebase Authentication (email/password with mandatory email verification) |
 | **Database** | Cloud Firestore (real-time sync, data stored under `users/{UID}/..`) |
-| **Analytics** | Firebase Analytics |
 
 ---
 

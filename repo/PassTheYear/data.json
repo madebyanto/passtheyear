@@ -1,0 +1,25 @@
+{
+  "app": {
+    "name": "PassTheYear",
+    "icon_url": "icon.png",
+    "description": "School survival & planner app to reduce academic anxiety, track countdown to the end of school, manage notes, and study wellbeing.",
+    "version": "1.0.0",
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "15-10-2026",
+        "changes": [
+          "First release"
+        ]
+      }
+    ],
+    "apk": {
+      "file_name": "PassTheYear-v1-15102026.apk",
+      "size_mb": 29,
+      "min_android_version": "7.0",
+      "target_sdk": "36",
+      "signature_sha256": "acf9f4363b2018c7a9067d79a74193f7c7a21544362267c7fdac5525479f8437",
+      "package_name": "com.passthe.year"
+    }
+  }
+}
