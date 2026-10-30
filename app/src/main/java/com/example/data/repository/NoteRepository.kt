@@ -15,17 +15,54 @@ class NoteRepository(
 ) {
 
     fun observeNotes(userId: String): Flow<List<Note>> {
+        if (userId.isBlank()) {
+            return kotlinx.coroutines.flow.flowOf(emptyList())
+        }
         return firestore.collection("users").document(userId).collection("notes")
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .snapshots()
             .map { snapshot ->
                 snapshot.documents.mapNotNull { doc ->
-                    doc.toObject(Note::class.java)?.copy(id = doc.id, userId = userId)
+                    try {
+                        doc.toObject(Note::class.java)?.copy(id = doc.id, userId = userId)
+                    } catch (_: Exception) {
+                        try {
+                            val title = doc.getString("title") ?: ""
+                            val content = doc.getString("content") ?: ""
+                            val category = doc.getString("category") ?: "study"
+                            val mood = doc.getString("mood") ?: "calm"
+                            val createdAt = doc.getTimestamp("createdAt")
+                            val updatedAt = doc.getTimestamp("updatedAt")
+                            Note(
+                                id = doc.id,
+                                userId = userId,
+                                title = title,
+                                content = content,
+                                category = category,
+                                mood = mood,
+                                createdAt = createdAt,
+                                updatedAt = updatedAt
+                            )
+                        } catch (_: Exception) {
+                            null
+                        }
+                    }
                 }
             }
             .catch {
-                // If orderBy fails due to missing index on new collection, fallback to basic list
-                emit(emptyList())
+                // If orderBy fails due to missing index on new collection or offline state, fallback to basic list
+                try {
+                    val fallback = firestore.collection("users").document(userId).collection("notes").get().await()
+                    emit(fallback.documents.mapNotNull { doc ->
+                        try {
+                            doc.toObject(Note::class.java)?.copy(id = doc.id, userId = userId)
+                        } catch (_: Exception) {
+                            null
+                        }
+                    })
+                } catch (_: Exception) {
+                    emit(emptyList())
+                }
             }
     }
 

@@ -25,7 +25,7 @@ class AuthRepository(
     val isEmailVerified: Boolean
         get() = auth.currentUser?.isEmailVerified == true
 
-    suspend fun signUpWithEmail(email: String, pass: String): AuthResult {
+    suspend fun signUpWithEmail(email: String, pass: String, initialLanguage: String = "en"): AuthResult {
         return try {
             val authResult = auth.createUserWithEmailAndPassword(email.trim(), pass).await()
             val user = authResult.user ?: return AuthResult.Error("Creazione utente fallita")
@@ -45,6 +45,7 @@ class AuthRepository(
                 schoolEndDate = "",
                 saturdayFree = true,
                 onboardingCompleted = false,
+                language = initialLanguage,
                 creationDate = com.google.firebase.Timestamp.now(),
                 updatedAt = com.google.firebase.Timestamp.now()
             )

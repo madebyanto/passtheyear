@@ -30,12 +30,21 @@ class UserViewModel(
     val uiState: StateFlow<UserUiState> = _uiState.asStateFlow()
 
     private var activeUserId: String? = null
+    private var observeJob: kotlinx.coroutines.Job? = null
+
+    fun reset() {
+        observeJob?.cancel()
+        observeJob = null
+        activeUserId = null
+        _uiState.value = UserUiState()
+    }
 
     fun bindUser(userId: String) {
-        if (activeUserId == userId) return
+        if (activeUserId == userId && observeJob?.isActive == true) return
         activeUserId = userId
+        observeJob?.cancel()
 
-        viewModelScope.launch {
+        observeJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             userRepository.getUserProfile(userId).collect { profile ->
                 val metrics = if (profile != null && profile.schoolStartDate.isNotBlank() && profile.schoolEndDate.isNotBlank()) {
@@ -62,6 +71,7 @@ class UserViewModel(
         endDate: String,
         saturdayFree: Boolean,
         strings: TranslationSet,
+        languageCode: String = "en",
         onSuccess: () -> Unit
     ) {
         val uid = activeUserId ?: FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -74,7 +84,8 @@ class UserViewModel(
             schoolStartDate = startDate,
             schoolEndDate = endDate,
             saturdayFree = saturdayFree,
-            onboardingCompleted = true
+            onboardingCompleted = true,
+            language = languageCode
         )
         val metrics = SchoolCalendarUtils.calculateMetrics(
             startDateStr = startDate,
@@ -97,13 +108,33 @@ class UserViewModel(
 
         // 2. Persist to Firestore asynchronously
         viewModelScope.launch {
-            val res = userRepository.saveSchoolDates(uid, startDate, endDate, saturdayFree)
+            val res = userRepository.saveSchoolDates(uid, startDate, endDate, saturdayFree, languageCode)
             if (res.isFailure) {
                 _uiState.update {
                     it.copy(
                         error = res.exceptionOrNull()?.localizedMessage ?: strings.errorGeneric
                     )
                 }
+            }
+        }
+    }
+
+    fun updateLanguage(languageCode: String) {
+        val uid = activeUserId ?: FirebaseAuth.getInstance().currentUser?.uid
+
+        // Optimistically update local profile
+        _uiState.update { state ->
+            val currentProfile = state.profile
+            if (currentProfile != null) {
+                state.copy(profile = currentProfile.copy(language = languageCode))
+            } else {
+                state
+            }
+        }
+
+        if (uid != null) {
+            viewModelScope.launch {
+                userRepository.updateLanguage(uid, languageCode)
             }
         }
     }

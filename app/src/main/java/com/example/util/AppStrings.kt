@@ -81,6 +81,7 @@ data class TranslationSet(
     val editDates: String,
     val daysRemainingTitle: String,
     val daysLabel: String,
+    val daysShort: String,
     val yearProgressTitle: String,
     val estimatedSchoolDaysTitle: String,
     val schoolDaysSubtext: String,
@@ -120,6 +121,9 @@ data class TranslationSet(
     val deleteNoteConfirm: String,
     val recent: String,
     val edit: String,
+    val noteSavedSuccess: String,
+    val noteUpdatedSuccess: String,
+    val noteEmptyError: String,
 
     // Categories
     val categoryAll: String,
@@ -162,7 +166,12 @@ data class TranslationSet(
     val updateDatesBtn: String,
     val datesUpdatedSuccess: String,
     val signOutBtn: String,
-    val signOutConfirmText: String
+    val signOutConfirmText: String,
+    val aboutAppSection: String,
+    val aboutAppDesc: String,
+    val versionLabel: String,
+    val openSourceNotice: String,
+    val settingsSectionsSubtitle: String
 )
 
 val EnglishTranslations = TranslationSet(
@@ -240,6 +249,7 @@ val EnglishTranslations = TranslationSet(
     editDates = "Edit dates",
     daysRemainingTitle = "Days Remaining in School",
     daysLabel = "days",
+    daysShort = "d",
     yearProgressTitle = "School Year Progress",
     estimatedSchoolDaysTitle = "Estimated School Days Left",
     schoolDaysSubtext = "Excluding weekends and expected holidays",
@@ -277,6 +287,9 @@ val EnglishTranslations = TranslationSet(
     deleteNoteConfirm = "Are you sure you want to delete this note?",
     recent = "Recent",
     edit = "Edit",
+    noteSavedSuccess = "Note saved successfully!",
+    noteUpdatedSuccess = "Note updated successfully!",
+    noteEmptyError = "Please enter a title or note content",
 
     categoryAll = "All",
     categoryStudy = "Study",
@@ -315,7 +328,12 @@ val EnglishTranslations = TranslationSet(
     updateDatesBtn = "Update School Dates",
     datesUpdatedSuccess = "School dates updated successfully!",
     signOutBtn = "Sign Out",
-    signOutConfirmText = "Are you sure you want to sign out?"
+    signOutConfirmText = "Are you sure you want to sign out?",
+    aboutAppSection = "About PassTheYear",
+    aboutAppDesc = "PassTheYear is an open-source student companion designed to reduce academic anxiety, plan the school year, and support mental wellness.",
+    versionLabel = "Version 1.2.0",
+    openSourceNotice = "Open Source Project • AGPLv3 License",
+    settingsSectionsSubtitle = "Select a section to manage your preferences"
 )
 
 val ItalianTranslations = TranslationSet(
@@ -393,6 +411,7 @@ val ItalianTranslations = TranslationSet(
     editDates = "Modifica date",
     daysRemainingTitle = "Giorni alla Fine della Scuola",
     daysLabel = "giorni",
+    daysShort = "gg",
     yearProgressTitle = "Progresso Anno Scolastico",
     estimatedSchoolDaysTitle = "Giorni Scolastici Effettivi",
     schoolDaysSubtext = "Esclusi fine settimana e festività stimate",
@@ -430,6 +449,9 @@ val ItalianTranslations = TranslationSet(
     deleteNoteConfirm = "Sei sicuro di voler eliminare questa nota?",
     recent = "Recente",
     edit = "Modifica",
+    noteSavedSuccess = "Nota salvata con successo!",
+    noteUpdatedSuccess = "Nota aggiornata con successo!",
+    noteEmptyError = "Inserisci un titolo o del testo nella nota",
 
     categoryAll = "Tutte",
     categoryStudy = "Studio",
@@ -468,7 +490,12 @@ val ItalianTranslations = TranslationSet(
     updateDatesBtn = "Aggiorna Date Scolastiche",
     datesUpdatedSuccess = "Date scolastiche aggiornate con successo!",
     signOutBtn = "Disconnetti Account",
-    signOutConfirmText = "Sei sicuro di voler effettuare la disconnessione?"
+    signOutConfirmText = "Sei sicuro di voler effettuare la disconnessione?",
+    aboutAppSection = "Informazioni sull'App",
+    aboutAppDesc = "PassTheYear è un'applicazione open source pensata per supportare gli studenti, ridurre l'ansia scolastica e pianificare l'anno con serenità.",
+    versionLabel = "Versione 1.2.0",
+    openSourceNotice = "Progetto Open Source • Licenza AGPLv3",
+    settingsSectionsSubtitle = "Seleziona una sezione per gestire le impostazioni"
 )
 
 val SpanishTranslations = TranslationSet(
@@ -546,6 +573,7 @@ val SpanishTranslations = TranslationSet(
     editDates = "Editar fechas",
     daysRemainingTitle = "Días para el Fin de las Clases",
     daysLabel = "días",
+    daysShort = "d",
     yearProgressTitle = "Progreso del Año Escolar",
     estimatedSchoolDaysTitle = "Días Lectivos Estimados",
     schoolDaysSubtext = "Excluyendo fines de semana y festivos estimados",
@@ -583,6 +611,9 @@ val SpanishTranslations = TranslationSet(
     deleteNoteConfirm = "¿Seguro que deseas eliminar esta nota?",
     recent = "Reciente",
     edit = "Editar",
+    noteSavedSuccess = "¡Nota guardada con éxito!",
+    noteUpdatedSuccess = "¡Nota actualizada con éxito!",
+    noteEmptyError = "Por favor, introduce un título o texto",
 
     categoryAll = "Todas",
     categoryStudy = "Estudio",
@@ -621,7 +652,12 @@ val SpanishTranslations = TranslationSet(
     updateDatesBtn = "Actualizar Fechas Escolares",
     datesUpdatedSuccess = "¡Fechas escolares actualizadas con éxito!",
     signOutBtn = "Cerrar Sesión",
-    signOutConfirmText = "¿Seguro que deseas cerrar sesión?"
+    signOutConfirmText = "¿Seguro que deseas cerrar sesión?",
+    aboutAppSection = "Acerca de PassTheYear",
+    aboutAppDesc = "PassTheYear es una aplicación de código abierto diseñada para reducir la ansiedad académica, planificar el curso escolar y apoyar el bienestar.",
+    versionLabel = "Versión 1.2.0",
+    openSourceNotice = "Proyecto de Código Abierto • Licencia AGPLv3",
+    settingsSectionsSubtitle = "Selecciona una sección para administrar tus ajustes"
 )
 
 fun getTranslations(lang: AppLanguage): TranslationSet {

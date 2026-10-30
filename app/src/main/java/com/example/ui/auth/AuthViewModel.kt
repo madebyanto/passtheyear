@@ -92,7 +92,7 @@ class AuthViewModel(
         }
     }
 
-    fun signUp(email: String, pass: String, confirmPass: String, strings: TranslationSet) {
+    fun signUp(email: String, pass: String, confirmPass: String, strings: TranslationSet, languageCode: String = "en") {
         if (email.isBlank() || pass.isBlank() || confirmPass.isBlank()) {
             _uiState.update { it.copy(error = strings.fillAllFields) }
             return
@@ -108,7 +108,7 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null, infoMessage = null) }
-            when (val result = authRepository.signUpWithEmail(email, pass)) {
+            when (val result = authRepository.signUpWithEmail(email, pass, languageCode)) {
                 is AuthResult.VerificationRequired -> {
                     _uiState.update {
                         it.copy(

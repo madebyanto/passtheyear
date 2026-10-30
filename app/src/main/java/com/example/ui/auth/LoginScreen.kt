@@ -23,6 +23,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import com.example.ui.util.AutofillFieldType
+import com.example.ui.util.autofill
+import com.example.ui.util.rememberAutofillCommit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.AppTopBar
@@ -41,6 +44,7 @@ fun LoginScreen(
     val lang = LocalAppLanguage.current.currentLanguage
     val strings = getTranslations(lang)
     val focusManager = LocalFocusManager.current
+    val commitAutofill = rememberAutofillCommit()
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -48,7 +52,10 @@ fun LoginScreen(
 
     Scaffold(
         topBar = {
-            AppTopBar(title = strings.appName)
+            AppTopBar(
+                title = strings.appName,
+                showLanguageSelector = true
+            )
         },
         modifier = modifier.fillMaxSize()
     ) { innerPadding ->
@@ -132,6 +139,10 @@ fun LoginScreen(
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .autofill(
+                        types = listOf(AutofillFieldType.Email, AutofillFieldType.Username),
+                        onFill = { email = it }
+                    )
                     .testTag("login_email_input")
             )
 
@@ -161,12 +172,17 @@ fun LoginScreen(
                 keyboardActions = KeyboardActions(
                     onDone = {
                         focusManager.clearFocus()
+                        commitAutofill()
                         viewModel.login(email, password, strings)
                     }
                 ),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .autofill(
+                        types = listOf(AutofillFieldType.Password),
+                        onFill = { password = it }
+                    )
                     .testTag("login_password_input")
             )
 
@@ -190,6 +206,7 @@ fun LoginScreen(
             Button(
                 onClick = {
                     focusManager.clearFocus()
+                    commitAutofill()
                     viewModel.login(email, password, strings)
                 },
                 enabled = !uiState.isLoading,

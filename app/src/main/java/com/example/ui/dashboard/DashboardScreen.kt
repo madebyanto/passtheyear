@@ -1,6 +1,7 @@
 package com.example.ui.dashboard
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,10 +36,10 @@ import java.time.LocalDate
 fun DashboardScreen(
     userViewModel: UserViewModel,
     onNavigateToMonths: () -> Unit,
-    onNavigateToWellness: () -> Unit,
-    onNavigateToNotes: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToWellness: () -> Unit = {},
+    onNavigateToNotes: () -> Unit = {}
 ) {
     val uiState by userViewModel.uiState.collectAsState()
     val lang = LocalAppLanguage.current.currentLanguage
@@ -64,22 +65,27 @@ fun DashboardScreen(
         label = "progress_animation"
     )
 
+    val animatedDaysRemaining by animateIntAsState(
+        targetValue = (metrics?.daysRemaining ?: 0L).toInt(),
+        animationSpec = tween(durationMillis = 800),
+        label = "days_remaining_anim"
+    )
+
+    val animatedSchoolDays by animateIntAsState(
+        targetValue = (metrics?.actualSchoolDaysRemaining ?: 0L).toInt(),
+        animationSpec = tween(durationMillis = 800),
+        label = "school_days_anim"
+    )
+
+    val animatedMonthProgress by animateFloatAsState(
+        targetValue = (currentMonthProgress.progressPercent / 100f).coerceIn(0f, 1f),
+        animationSpec = tween(durationMillis = 900),
+        label = "month_progress_anim"
+    )
+
     Scaffold(
         topBar = {
-            AppTopBar(
-                title = strings.appName,
-                actions = {
-                    IconButton(
-                        onClick = onNavigateToSettings,
-                        modifier = Modifier.testTag("dashboard_settings_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = strings.navSettings
-                        )
-                    }
-                }
-            )
+            AppTopBar(title = strings.appName)
         },
         modifier = modifier.fillMaxSize()
     ) { innerPadding ->
@@ -176,7 +182,7 @@ fun DashboardScreen(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Row(verticalAlignment = Alignment.Bottom) {
                                     Text(
-                                        text = "${metrics?.daysRemaining ?: 0}",
+                                        text = "$animatedDaysRemaining",
                                         style = MaterialTheme.typography.displayMedium.copy(
                                             fontWeight = FontWeight.ExtraBold,
                                             fontSize = 46.sp
@@ -206,31 +212,22 @@ fun DashboardScreen(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    text = "${metrics?.progressPercent?.toInt() ?: 0}%",
+                                    text = "${(animatedProgress * 100).toInt()}%",
                                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Linear progress bar representation
-                        LinearProgressIndicator(
-                            progress = { animatedProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-
-                        Spacer(modifier = Modifier.height(14.dp))
+                        Spacer(modifier = Modifier.height(18.dp))
 
                         // Actual school days pill
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -241,7 +238,7 @@ fun DashboardScreen(
                                     tint = MaterialTheme.colorScheme.secondary,
                                     modifier = Modifier.size(18.dp)
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = strings.estimatedSchoolDaysTitle,
                                     style = MaterialTheme.typography.bodySmall,
@@ -249,103 +246,11 @@ fun DashboardScreen(
                                 )
                             }
                             Text(
-                                text = "~${metrics?.actualSchoolDaysRemaining ?: 0} ${strings.daysLabel}",
+                                text = "~$animatedSchoolDays ${strings.daysLabel}",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // QUICK ACTIONS ROW
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                // Box Breathing Button
-                FilledTonalButton(
-                    onClick = onNavigateToWellness,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(64.dp)
-                        .testTag("dashboard_quick_breathe_btn")
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.SelfImprovement,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = strings.breatheShortAction,
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                }
-
-                // New Note Button
-                FilledTonalButton(
-                    onClick = onNavigateToNotes,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(64.dp)
-                        .testTag("dashboard_quick_note_btn")
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.EditNote,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = strings.noteShortAction,
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
-                        )
-                    }
-                }
-
-                // Month Vision Button
-                FilledTonalButton(
-                    onClick = onNavigateToMonths,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(64.dp)
-                        .testTag("dashboard_quick_months_btn")
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.CalendarMonth,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = strings.monthsShortAction,
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
                     }
                 }
             }
@@ -434,7 +339,7 @@ fun DashboardScreen(
                                 Text(
                                     text = when (currentMonthProgress.status) {
                                         MonthProgressStatus.COMPLETED -> strings.monthStatusCompleted
-                                        MonthProgressStatus.IN_PROGRESS -> "${strings.monthStatusCurrent} (${currentMonthProgress.daysPassed}/${currentMonthProgress.totalDays} gg)"
+                                        MonthProgressStatus.IN_PROGRESS -> "${strings.monthStatusCurrent} (${currentMonthProgress.daysPassed}/${currentMonthProgress.totalDays} ${strings.daysShort})"
                                         MonthProgressStatus.UPCOMING -> strings.monthStatusUpcoming
                                     },
                                     style = MaterialTheme.typography.labelSmall,
@@ -443,7 +348,7 @@ fun DashboardScreen(
                             }
                             Spacer(modifier = Modifier.height(6.dp))
                             LinearProgressIndicator(
-                                progress = { (currentMonthProgress.progressPercent / 100f).coerceIn(0f, 1f) },
+                                progress = { animatedMonthProgress },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(6.dp)

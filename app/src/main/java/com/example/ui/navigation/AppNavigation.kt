@@ -1,6 +1,8 @@
 package com.example.ui.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -25,6 +27,7 @@ import com.example.ui.onboarding.OnboardingScreen
 import com.example.ui.settings.SettingsScreen
 import com.example.ui.user.UserViewModel
 import com.example.ui.wellness.WellnessScreen
+import com.example.util.AppLanguage
 import com.example.util.LocalAppLanguage
 import com.example.util.getTranslations
 
@@ -56,17 +59,44 @@ fun AppNavigation(
 ) {
     val authState by authViewModel.uiState.collectAsState()
     val userState by userViewModel.uiState.collectAsState()
-    val lang = LocalAppLanguage.current.currentLanguage
+    val languageManager = LocalAppLanguage.current
+    val lang = languageManager.currentLanguage
     val strings = getTranslations(lang)
 
     var authDestination by remember { mutableStateOf(AuthDestination.LOGIN) }
     var currentTab by remember { mutableStateOf(MainTab.DASHBOARD) }
 
-    // When user authenticates, bind user to UserViewModel and NotesViewModel
+    // When user authenticates, bind user to UserViewModel and NotesViewModel; reset on logout
     LaunchedEffect(authState.currentUserId, authState.isAuthenticated) {
         if (authState.isAuthenticated && authState.currentUserId != null) {
             userViewModel.bindUser(authState.currentUserId!!)
             notesViewModel.bindUser(authState.currentUserId!!)
+        } else if (!authState.isAuthenticated) {
+            userViewModel.reset()
+            notesViewModel.reset()
+        }
+    }
+
+    // Automatically sync language changes to Firestore when authenticated
+    DisposableEffect(languageManager, authState.currentUserId, authState.isAuthenticated) {
+        languageManager.onLanguageChangedListener = { newLang ->
+            if (authState.isAuthenticated) {
+                userViewModel.updateLanguage(newLang.code)
+            }
+        }
+        onDispose {
+            languageManager.onLanguageChangedListener = null
+        }
+    }
+
+    // When the user profile is loaded from Firestore, restore saved language from the database
+    LaunchedEffect(userState.profile?.language) {
+        val cloudLanguageCode = userState.profile?.language
+        if (!cloudLanguageCode.isNullOrBlank()) {
+            val cloudLang = AppLanguage.fromCode(cloudLanguageCode)
+            if (languageManager.currentLanguage != cloudLang) {
+                languageManager.setLanguage(cloudLang, syncToCloud = false)
+            }
         }
     }
 
@@ -80,27 +110,41 @@ fun AppNavigation(
                 }
             )
         } else {
-            when (authDestination) {
-                AuthDestination.LOGIN -> {
-                    LoginScreen(
-                        viewModel = authViewModel,
-                        onNavigateToSignUp = { authDestination = AuthDestination.SIGN_UP },
-                        onNavigateToForgotPassword = { authDestination = AuthDestination.FORGOT_PASSWORD }
-                    )
-                }
-                AuthDestination.SIGN_UP -> {
-                    BackHandler { authDestination = AuthDestination.LOGIN }
-                    SignUpScreen(
-                        viewModel = authViewModel,
-                        onNavigateBackToLogin = { authDestination = AuthDestination.LOGIN }
-                    )
-                }
-                AuthDestination.FORGOT_PASSWORD -> {
-                    BackHandler { authDestination = AuthDestination.LOGIN }
-                    ForgotPasswordScreen(
-                        viewModel = authViewModel,
-                        onNavigateBack = { authDestination = AuthDestination.LOGIN }
-                    )
+            AnimatedContent(
+                targetState = authDestination,
+                transitionSpec = {
+                    if (targetState == AuthDestination.SIGN_UP || (initialState == AuthDestination.LOGIN && targetState == AuthDestination.FORGOT_PASSWORD)) {
+                        (slideInHorizontally(animationSpec = tween(280)) { width -> width / 3 } + fadeIn(animationSpec = tween(240)))
+                            .togetherWith(slideOutHorizontally(animationSpec = tween(240)) { width -> -width / 3 } + fadeOut(animationSpec = tween(180)))
+                    } else {
+                        (slideInHorizontally(animationSpec = tween(280)) { width -> -width / 3 } + fadeIn(animationSpec = tween(240)))
+                            .togetherWith(slideOutHorizontally(animationSpec = tween(240)) { width -> width / 3 } + fadeOut(animationSpec = tween(180)))
+                    }
+                },
+                label = "auth_screen_transition"
+            ) { destination ->
+                when (destination) {
+                    AuthDestination.LOGIN -> {
+                        LoginScreen(
+                            viewModel = authViewModel,
+                            onNavigateToSignUp = { authDestination = AuthDestination.SIGN_UP },
+                            onNavigateToForgotPassword = { authDestination = AuthDestination.FORGOT_PASSWORD }
+                        )
+                    }
+                    AuthDestination.SIGN_UP -> {
+                        BackHandler { authDestination = AuthDestination.LOGIN }
+                        SignUpScreen(
+                            viewModel = authViewModel,
+                            onNavigateBackToLogin = { authDestination = AuthDestination.LOGIN }
+                        )
+                    }
+                    AuthDestination.FORGOT_PASSWORD -> {
+                        BackHandler { authDestination = AuthDestination.LOGIN }
+                        ForgotPasswordScreen(
+                            viewModel = authViewModel,
+                            onNavigateBack = { authDestination = AuthDestination.LOGIN }
+                        )
+                    }
                 }
             }
         }
@@ -123,6 +167,9 @@ fun AppNavigation(
                 userViewModel = userViewModel,
                 onOnboardingFinished = {
                     currentTab = MainTab.DASHBOARD
+                },
+                onSignOut = {
+                    authViewModel.signOut()
                 }
             )
         } else {
@@ -168,34 +215,47 @@ fun AppNavigation(
                         .fillMaxSize()
                         .padding(innerPadding)
                 ) {
-                    when (currentTab) {
-                        MainTab.DASHBOARD -> {
-                            DashboardScreen(
-                                userViewModel = userViewModel,
-                                onNavigateToMonths = { currentTab = MainTab.MONTHS },
-                                onNavigateToWellness = { currentTab = MainTab.WELLNESS },
-                                onNavigateToNotes = { currentTab = MainTab.NOTES },
-                                onNavigateToSettings = { currentTab = MainTab.SETTINGS }
-                            )
-                        }
-                        MainTab.MONTHS -> {
-                            BackHandler { currentTab = MainTab.DASHBOARD }
-                            MonthsVisionScreen(userViewModel = userViewModel)
-                        }
-                        MainTab.NOTES -> {
-                            BackHandler { currentTab = MainTab.DASHBOARD }
-                            NotesScreen(notesViewModel = notesViewModel)
-                        }
-                        MainTab.WELLNESS -> {
-                            BackHandler { currentTab = MainTab.DASHBOARD }
-                            WellnessScreen()
-                        }
-                        MainTab.SETTINGS -> {
-                            BackHandler { currentTab = MainTab.DASHBOARD }
-                            SettingsScreen(
-                                userViewModel = userViewModel,
-                                authViewModel = authViewModel
-                            )
+                    AnimatedContent(
+                        targetState = currentTab,
+                        transitionSpec = {
+                            if (targetState.ordinal > initialState.ordinal) {
+                                (slideInHorizontally(animationSpec = tween(260)) { width -> width / 4 } + fadeIn(animationSpec = tween(220)))
+                                    .togetherWith(slideOutHorizontally(animationSpec = tween(220)) { width -> -width / 4 } + fadeOut(animationSpec = tween(180)))
+                            } else {
+                                (slideInHorizontally(animationSpec = tween(260)) { width -> -width / 4 } + fadeIn(animationSpec = tween(220)))
+                                    .togetherWith(slideOutHorizontally(animationSpec = tween(220)) { width -> width / 4 } + fadeOut(animationSpec = tween(180)))
+                            }
+                        },
+                        label = "main_tab_transition",
+                        modifier = Modifier.fillMaxSize()
+                    ) { tab ->
+                        when (tab) {
+                            MainTab.DASHBOARD -> {
+                                DashboardScreen(
+                                    userViewModel = userViewModel,
+                                    onNavigateToMonths = { currentTab = MainTab.MONTHS },
+                                    onNavigateToSettings = { currentTab = MainTab.SETTINGS }
+                                )
+                            }
+                            MainTab.MONTHS -> {
+                                BackHandler { currentTab = MainTab.DASHBOARD }
+                                MonthsVisionScreen(userViewModel = userViewModel)
+                            }
+                            MainTab.NOTES -> {
+                                BackHandler { currentTab = MainTab.DASHBOARD }
+                                NotesScreen(notesViewModel = notesViewModel)
+                            }
+                            MainTab.WELLNESS -> {
+                                BackHandler { currentTab = MainTab.DASHBOARD }
+                                WellnessScreen()
+                            }
+                            MainTab.SETTINGS -> {
+                                BackHandler { currentTab = MainTab.DASHBOARD }
+                                SettingsScreen(
+                                    userViewModel = userViewModel,
+                                    authViewModel = authViewModel
+                                )
+                            }
                         }
                     }
                 }

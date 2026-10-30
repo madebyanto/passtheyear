@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -189,7 +190,7 @@ fun EmailVerificationScreen(
                     .height(52.dp)
                     .testTag("resend_verification_btn")
             ) {
-                Icon(imageVector = Icons.Default.Send, contentDescription = null)
+                Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = strings.resendVerificationBtn,

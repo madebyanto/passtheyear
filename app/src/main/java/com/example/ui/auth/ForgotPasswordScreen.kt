@@ -20,6 +20,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import com.example.ui.util.AutofillFieldType
+import com.example.ui.util.autofill
 import androidx.compose.ui.unit.dp
 import com.example.ui.components.AppTopBar
 import com.example.ui.components.InfoBanner
@@ -45,7 +47,8 @@ fun ForgotPasswordScreen(
             AppTopBar(
                 title = strings.resetPasswordTitle,
                 canNavigateBack = true,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                showLanguageSelector = true
             )
         },
         modifier = modifier.fillMaxSize()
@@ -128,6 +131,10 @@ fun ForgotPasswordScreen(
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .autofill(
+                        types = listOf(AutofillFieldType.Email),
+                        onFill = { email = it }
+                    )
                     .testTag("reset_email_input")
             )
 

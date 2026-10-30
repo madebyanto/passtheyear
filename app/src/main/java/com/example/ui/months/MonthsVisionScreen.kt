@@ -1,5 +1,8 @@
 package com.example.ui.months
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -113,6 +116,12 @@ fun MonthCard(
         MonthProgressStatus.UPCOMING -> strings.monthStatusUpcoming
     }
 
+    val animatedProgress by animateFloatAsState(
+        targetValue = (progressInfo.progressPercent / 100f).coerceIn(0f, 1f),
+        animationSpec = tween(durationMillis = 800),
+        label = "month_card_progress"
+    )
+
     Card(
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(
@@ -128,6 +137,7 @@ fun MonthCard(
         elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentMonth) 4.dp else 1.dp),
         modifier = modifier
             .fillMaxWidth()
+            .animateContentSize()
             .testTag("month_card_${month.monthIndex}")
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
@@ -271,7 +281,7 @@ fun MonthCard(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     LinearProgressIndicator(
-                        progress = { (progressInfo.progressPercent / 100f).coerceIn(0f, 1f) },
+                        progress = { animatedProgress },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(8.dp)

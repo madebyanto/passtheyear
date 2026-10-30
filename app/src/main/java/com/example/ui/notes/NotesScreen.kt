@@ -1,5 +1,7 @@
 package com.example.ui.notes
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -131,114 +133,133 @@ fun NotesScreen(
                 }
             }
 
-            if (filteredNotes.isEmpty() && !uiState.isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier
-                                .size(72.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.NoteAlt,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(36.dp)
+            AnimatedContent(
+                targetState = filteredNotes.isEmpty() && !uiState.isLoading,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
+                },
+                label = "notes_list_transition"
+            ) { isEmpty ->
+                if (isEmpty) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.NoteAlt,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = strings.emptyNotesText,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = strings.emptyNotesText,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
                     }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(filteredNotes, key = { it.id }) { note ->
-                        NoteCard(
-                            note = note,
-                            onEdit = {
-                                noteToEdit = note
-                                showAddEditDialog = true
-                            },
-                            onDelete = {
-                                noteToDelete = note
-                            }
-                        )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = filteredNotes,
+                            key = { note -> note.id.ifBlank { "note_${note.hashCode()}_${note.createdAt?.seconds ?: 0}" } }
+                        ) { note ->
+                            NoteCard(
+                                note = note,
+                                onEdit = {
+                                    noteToEdit = note
+                                    showAddEditDialog = true
+                                },
+                                onDelete = {
+                                    noteToDelete = note
+                                },
+                                modifier = Modifier.animateItem()
+                            )
+                        }
                     }
                 }
             }
+            }
         }
-    }
 
-    // Add / Edit Dialog
-    if (showAddEditDialog) {
-        AddEditNoteDialog(
-            note = noteToEdit,
-            onDismiss = { showAddEditDialog = false },
-            onSave = { title, content, cat, mood ->
-                if (noteToEdit != null) {
-                    notesViewModel.updateNote(
-                        noteToEdit!!.copy(
+        // Add / Edit Dialog
+        if (showAddEditDialog) {
+            AddEditNoteDialog(
+                note = noteToEdit,
+                onDismiss = { showAddEditDialog = false },
+                onSave = { title, content, cat, mood ->
+                    if (noteToEdit != null) {
+                        notesViewModel.updateNote(
+                            note = noteToEdit!!.copy(
+                                title = title,
+                                content = content,
+                                category = cat,
+                                mood = mood
+                            ),
+                            strings = strings
+                        ) {
+                            showAddEditDialog = false
+                        }
+                    } else {
+                        notesViewModel.addNote(
                             title = title,
                             content = content,
                             category = cat,
-                            mood = mood
-                        )
-                    ) {
-                        showAddEditDialog = false
-                    }
-                } else {
-                    notesViewModel.addNote(title, content, cat, mood) {
-                        showAddEditDialog = false
+                            mood = mood,
+                            strings = strings
+                        ) {
+                            showAddEditDialog = false
+                        }
                     }
                 }
-            }
-        )
-    }
+            )
+        }
 
-    // Delete Confirmation Dialog
-    if (noteToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { noteToDelete = null },
-            icon = { Icon(Icons.Default.Delete, contentDescription = null) },
-            title = { Text(strings.delete) },
-            text = { Text(strings.deleteNoteConfirm) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        notesViewModel.deleteNote(noteToDelete!!.id)
-                        noteToDelete = null
-                    },
-                    modifier = Modifier.testTag("confirm_delete_note_btn")
-                ) {
-                    Text(strings.delete, color = MaterialTheme.colorScheme.error)
+        // Delete Confirmation Dialog
+        if (noteToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { noteToDelete = null },
+                icon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                title = { Text(strings.delete) },
+                text = { Text(strings.deleteNoteConfirm) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            notesViewModel.deleteNote(noteToDelete!!.id)
+                            noteToDelete = null
+                        },
+                        modifier = Modifier.testTag("confirm_delete_note_btn")
+                    ) {
+                        Text(strings.delete, color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { noteToDelete = null }) {
+                        Text(strings.cancel)
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { noteToDelete = null }) {
-                    Text(strings.cancel)
-                }
-            }
-        )
+            )
+        }
     }
-}
 
 @Composable
 fun NoteCard(
@@ -252,11 +273,17 @@ fun NoteCard(
     val dateFormat = remember(lang) {
         SimpleDateFormat("dd MMM yyyy, HH:mm", when (lang) {
             com.example.util.AppLanguage.ENGLISH -> Locale.ENGLISH
-            com.example.util.AppLanguage.SPANISH -> Locale("es", "ES")
+            com.example.util.AppLanguage.SPANISH -> Locale.forLanguageTag("es-ES")
             com.example.util.AppLanguage.ITALIAN -> Locale.ITALIAN
         })
     }
-    val formattedDate = note.createdAt?.let { dateFormat.format(it) } ?: strings.recent
+    val formattedDate = remember(note.createdAt, dateFormat) {
+        try {
+            note.createdAt?.toDate()?.let { dateFormat.format(it) } ?: strings.recent
+        } catch (_: Exception) {
+            strings.recent
+        }
+    }
 
     // Localized category display
     val localizedCategory = when (note.category.lowercase()) {
@@ -274,6 +301,7 @@ fun NoteCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier
             .fillMaxWidth()
+            .animateContentSize()
             .testTag("note_card_${note.id}")
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

@@ -28,6 +28,7 @@ class UserRepository(
                         val endDate = snapshot.getString("schoolEndDate") ?: ""
                         val satFree = snapshot.getBoolean("saturdayFree") ?: true
                         val onboarding = snapshot.getBoolean("onboardingCompleted") ?: (startDate.isNotBlank() && endDate.isNotBlank())
+                        val lang = snapshot.getString("language") ?: "en"
                         val creation = snapshot.getTimestamp("creationDate")
                         val updated = snapshot.getTimestamp("updatedAt")
                         UserProfile(
@@ -37,6 +38,7 @@ class UserRepository(
                             schoolEndDate = endDate,
                             saturdayFree = satFree,
                             onboardingCompleted = onboarding,
+                            language = lang,
                             creationDate = creation,
                             updatedAt = updated
                         )
@@ -52,17 +54,38 @@ class UserRepository(
         userId: String,
         startDate: String,
         endDate: String,
-        saturdayFree: Boolean
+        saturdayFree: Boolean,
+        languageCode: String = "en"
     ): Result<Unit> {
         return try {
             val email = FirebaseAuth.getInstance().currentUser?.email ?: ""
-            val updates = mapOf(
+            val updates = mutableMapOf<String, Any>(
                 "userId" to userId,
                 "email" to email,
                 "schoolStartDate" to startDate,
                 "schoolEndDate" to endDate,
                 "saturdayFree" to saturdayFree,
                 "onboardingCompleted" to true,
+                "updatedAt" to FieldValue.serverTimestamp()
+            )
+            if (languageCode.isNotBlank()) {
+                updates["language"] = languageCode
+            }
+            firestore.collection("users").document(userId)
+                .set(updates, SetOptions.merge()).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateLanguage(
+        userId: String,
+        languageCode: String
+    ): Result<Unit> {
+        return try {
+            val updates = mapOf(
+                "language" to languageCode,
                 "updatedAt" to FieldValue.serverTimestamp()
             )
             firestore.collection("users").document(userId)
@@ -77,8 +100,9 @@ class UserRepository(
         userId: String,
         startDate: String,
         endDate: String,
-        saturdayFree: Boolean
+        saturdayFree: Boolean,
+        languageCode: String = "en"
     ): Result<Unit> {
-        return saveSchoolDates(userId, startDate, endDate, saturdayFree)
+        return saveSchoolDates(userId, startDate, endDate, saturdayFree, languageCode)
     }
 }

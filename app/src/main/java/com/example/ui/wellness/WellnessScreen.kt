@@ -1,5 +1,6 @@
 package com.example.ui.wellness
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -271,6 +272,7 @@ fun SurvivalTipCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = modifier
             .fillMaxWidth()
+            .animateContentSize()
             .testTag("survival_tip_card_${tip.id}")
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
@@ -321,48 +323,54 @@ fun SurvivalTipCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            if (expanded) {
-                Spacer(modifier = Modifier.height(14.dp))
-                Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                Spacer(modifier = Modifier.height(12.dp))
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn(tween(220)) + expandVertically(tween(260)),
+                exit = fadeOut(tween(180)) + shrinkVertically(tween(220))
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Text(
-                    text = strings.practicalSteps,
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                    Text(
+                        text = strings.practicalSteps,
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                tip.steps(lang).forEachIndexed { index, step ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            modifier = Modifier.size(20.dp)
+                    tip.steps(lang).forEachIndexed { index, step ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.Top
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = "${index + 1}",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 11.sp
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                modifier = Modifier.size(20.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = "${index + 1}",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 11.sp
+                                        ),
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
                             }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = step,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = step,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
                     }
                 }
             }

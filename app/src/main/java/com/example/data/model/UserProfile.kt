@@ -13,6 +13,7 @@ data class UserProfile(
     val schoolEndDate: String = "",   // e.g. "2027-06-09"
     val saturdayFree: Boolean = true, // true = 5 days/week (Mon-Fri), false = 6 days/week (Mon-Sat)
     val onboardingCompleted: Boolean = false,
+    val language: String = "en",      // "en", "it", "es"
     @ServerTimestamp val creationDate: Timestamp? = null,
     @ServerTimestamp val updatedAt: Timestamp? = null
 )

@@ -111,4 +111,91 @@ class ExampleUnitTest {
         assertEquals(0, aprilProgress.progressPercent)
         assertEquals(com.example.util.MonthProgressStatus.UPCOMING, aprilProgress.status)
     }
+
+    @Test
+    fun testInvertedDatesEdgeCase() {
+        // If user enters end date before start date
+        val metrics = SchoolCalendarUtils.calculateMetrics(
+            startDateStr = "2027-06-10",
+            endDateStr = "2026-09-15",
+            today = LocalDate.of(2026, 10, 15)
+        )
+        assertTrue(metrics.daysRemaining >= 0)
+        assertTrue(metrics.progressPercent in 0f..100f)
+    }
+
+    @Test
+    fun testInvalidDateStringsFallback() {
+        val metrics = SchoolCalendarUtils.calculateMetrics(
+            startDateStr = "not-a-date",
+            endDateStr = "",
+            today = LocalDate.of(2026, 10, 15)
+        )
+        assertNotNull(metrics)
+        assertTrue(metrics.progressPercent in 0f..100f)
+    }
+
+    @Test
+    fun testTranslationSetsCompleteness() {
+        for (lang in AppLanguage.values()) {
+            val trans = com.example.util.getTranslations(lang)
+            assertTrue(trans.appName.isNotBlank())
+            assertTrue(trans.loginTitle.isNotBlank())
+            assertTrue(trans.daysRemainingTitle.isNotBlank())
+            assertTrue(trans.noteSavedSuccess.isNotBlank())
+            assertTrue(trans.daysShort.isNotBlank())
+            assertTrue(trans.aboutAppSection.isNotBlank())
+            assertTrue(trans.aboutAppDesc.isNotBlank())
+            assertTrue(trans.versionLabel.isNotBlank())
+            assertTrue(trans.openSourceNotice.isNotBlank())
+            assertTrue(trans.settingsSectionsSubtitle.isNotBlank())
+        }
+    }
+
+    @Test
+    fun testSettingsSectionsEnum() {
+        val sections = com.example.ui.settings.SettingsSection.values()
+        assertEquals(4, sections.size)
+        assertTrue(sections.contains(com.example.ui.settings.SettingsSection.ACADEMIC_DATES))
+        assertTrue(sections.contains(com.example.ui.settings.SettingsSection.LANGUAGE))
+        assertTrue(sections.contains(com.example.ui.settings.SettingsSection.ACCOUNT))
+        assertTrue(sections.contains(com.example.ui.settings.SettingsSection.ABOUT))
+    }
+
+    @Test
+    fun testLanguageCodeResolution() {
+        assertEquals(AppLanguage.ENGLISH, AppLanguage.fromCode("en"))
+        assertEquals(AppLanguage.ITALIAN, AppLanguage.fromCode("it"))
+        assertEquals(AppLanguage.SPANISH, AppLanguage.fromCode("es"))
+        assertEquals(AppLanguage.ENGLISH, AppLanguage.fromCode("invalid_code"))
+        assertEquals(AppLanguage.ENGLISH, AppLanguage.fromCode(null))
+        assertEquals(AppLanguage.ENGLISH, AppLanguage.fromCode(""))
+
+        val profile = com.example.data.model.UserProfile(
+            userId = "user123",
+            email = "student@test.com",
+            language = "it"
+        )
+        assertEquals("it", profile.language)
+        assertEquals(AppLanguage.ITALIAN, AppLanguage.fromCode(profile.language))
+    }
+
+    @Test
+    fun testNoteDateFormatting() {
+        val timestamp = com.google.firebase.Timestamp.now()
+        val note = com.example.data.model.Note(
+            id = "note_1",
+            title = "Math homework",
+            content = "Study chapter 3",
+            createdAt = timestamp
+        )
+        val dateFormat = java.text.SimpleDateFormat("dd MMM yyyy, HH:mm", java.util.Locale.ENGLISH)
+        val formatted = try {
+            note.createdAt?.toDate()?.let { dateFormat.format(it) } ?: "Recent"
+        } catch (_: Exception) {
+            "Recent"
+        }
+        assertNotNull(formatted)
+        assertFalse(formatted.isBlank())
+    }
 }

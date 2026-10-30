@@ -58,8 +58,10 @@ object SchoolCalendarUtils {
         saturdayFree: Boolean = true,
         today: LocalDate = LocalDate.now()
     ): SchoolYearMetrics {
-        val start = parseDate(startDateStr) ?: today.minusMonths(2)
-        val end = parseDate(endDateStr) ?: today.plusMonths(7)
+        val rawStart = parseDate(startDateStr) ?: today.minusMonths(2)
+        val rawEnd = parseDate(endDateStr) ?: today.plusMonths(7)
+
+        val (start, end) = if (rawEnd.isBefore(rawStart)) rawEnd to rawStart else rawStart to rawEnd
 
         val totalCalendarDays = ChronoUnit.DAYS.between(start, end).coerceAtLeast(1)
         val daysFromStart = ChronoUnit.DAYS.between(start, today)

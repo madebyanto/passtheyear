@@ -1,5 +1,7 @@
 package com.example.ui.onboarding
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -7,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,6 +33,7 @@ import java.time.LocalDate
 fun OnboardingScreen(
     userViewModel: UserViewModel,
     onOnboardingFinished: () -> Unit,
+    onSignOut: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val uiState by userViewModel.uiState.collectAsState()
@@ -59,7 +63,23 @@ fun OnboardingScreen(
 
     Scaffold(
         topBar = {
-            AppTopBar(title = strings.onboardingTitle)
+            AppTopBar(
+                title = strings.onboardingTitle,
+                showLanguageSelector = true,
+                actions = {
+                    if (onSignOut != null) {
+                        IconButton(
+                            onClick = onSignOut,
+                            modifier = Modifier.testTag("onboarding_sign_out_btn")
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Logout,
+                                contentDescription = strings.signOutBtn
+                            )
+                        }
+                    }
+                }
+            )
         },
         modifier = modifier.fillMaxSize()
     ) { innerPadding ->
@@ -186,60 +206,68 @@ fun OnboardingScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Preview Card
-            if (metrics != null) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(18.dp)
+            // Preview Card with animation
+            AnimatedVisibility(
+                visible = metrics != null,
+                enter = fadeIn(tween(250)) + expandVertically(tween(300)),
+                exit = fadeOut(tween(200)) + shrinkVertically(tween(250))
+            ) {
+                if (metrics != null) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateContentSize()
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Analytics,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.secondary
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = strings.calendarPreview,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                        Column(
+                            modifier = Modifier.padding(18.dp)
                         ) {
-                            Column {
-                                Text(
-                                    text = strings.totalDays,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Analytics,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.secondary
                                 )
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "${metrics.daysRemaining} ${strings.remaining}",
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    text = strings.calendarPreview,
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
 
-                            Column {
-                                Text(
-                                    text = strings.estimatedClassDays,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = "~${metrics.actualSchoolDaysRemaining} ${strings.daysLabel}",
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column {
+                                    Text(
+                                        text = strings.totalDays,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = "${metrics.daysRemaining} ${strings.remaining}",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                Column {
+                                    Text(
+                                        text = strings.estimatedClassDays,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = "~${metrics.actualSchoolDaysRemaining} ${strings.daysLabel}",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
                             }
                         }
                     }
@@ -258,7 +286,13 @@ fun OnboardingScreen(
                         validationError = strings.dateValidationError
                     } else {
                         validationError = null
-                        userViewModel.saveSchoolDates(startDate, endDate, saturdayFree, strings) {
+                        userViewModel.saveSchoolDates(
+                            startDate = startDate,
+                            endDate = endDate,
+                            saturdayFree = saturdayFree,
+                            strings = strings,
+                            languageCode = lang.code
+                        ) {
                             onOnboardingFinished()
                         }
                     }

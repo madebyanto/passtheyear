@@ -2,11 +2,15 @@ package com.example.ui.components
 
 import android.app.DatePickerDialog
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,6 +33,7 @@ fun AppTopBar(
     title: String,
     canNavigateBack: Boolean = false,
     onNavigateBack: () -> Unit = {},
+    showLanguageSelector: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     val languageManager = LocalAppLanguage.current
@@ -52,45 +57,46 @@ fun AppTopBar(
                     modifier = Modifier.testTag("top_bar_back_btn")
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = strings.back
                     )
                 }
             }
         },
         actions = {
-            // Language selector button
-            Box {
-                IconButton(
-                    onClick = { showLanguageMenu = true },
-                    modifier = Modifier.testTag("lang_toggle_btn")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Translate,
-                        contentDescription = strings.languageSection
-                    )
-                }
-                DropdownMenu(
-                    expanded = showLanguageMenu,
-                    onDismissRequest = { showLanguageMenu = false }
-                ) {
-                    AppLanguage.values().forEach { lang ->
-                        DropdownMenuItem(
-                            text = { Text(lang.label) },
-                            onClick = {
-                                languageManager.setLanguage(lang)
-                                showLanguageMenu = false
-                            },
-                            trailingIcon = {
-                                if (languageManager.currentLanguage == lang) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Selected",
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
+            if (showLanguageSelector) {
+                Box {
+                    IconButton(
+                        onClick = { showLanguageMenu = true },
+                        modifier = Modifier.testTag("lang_toggle_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Translate,
+                            contentDescription = strings.languageSection
                         )
+                    }
+                    DropdownMenu(
+                        expanded = showLanguageMenu,
+                        onDismissRequest = { showLanguageMenu = false }
+                    ) {
+                        AppLanguage.values().forEach { lang ->
+                            DropdownMenuItem(
+                                text = { Text(lang.label) },
+                                onClick = {
+                                    languageManager.setLanguage(lang)
+                                    showLanguageMenu = false
+                                },
+                                trailingIcon = {
+                                    if (languageManager.currentLanguage == lang) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Selected",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -115,33 +121,32 @@ fun DatePickerField(
 ) {
     val context = LocalContext.current
     val strings = getTranslations(LocalAppLanguage.current.currentLanguage)
-    val calendar = Calendar.getInstance()
+    val currentOnDateSelected by rememberUpdatedState(onDateSelected)
 
-    // Try parsing existing date
-    if (selectedDate.isNotBlank()) {
-        try {
-            val parts = selectedDate.split("-")
-            if (parts.size == 3) {
-                calendar.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
-            }
-        } catch (_: Exception) {}
-    }
-
-    val datePickerDialog = remember {
+    val showDatePicker = {
+        val cal = Calendar.getInstance()
+        if (selectedDate.isNotBlank()) {
+            try {
+                val parts = selectedDate.split("-")
+                if (parts.size == 3) {
+                    cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+                }
+            } catch (_: Exception) {}
+        }
         DatePickerDialog(
             context,
             { _, year, month, dayOfMonth ->
-                val formatted = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth)
-                onDateSelected(formatted)
+                val formatted = String.format(java.util.Locale.US, "%04d-%02d-%02d", year, month + 1, dayOfMonth)
+                currentOnDateSelected(formatted)
             },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH),
+            cal.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 
     OutlinedCard(
-        onClick = { datePickerDialog.show() },
+        onClick = showDatePicker,
         modifier = modifier
             .fillMaxWidth()
             .testTag(testTag),
@@ -185,8 +190,8 @@ fun InfoBanner(
     val strings = getTranslations(LocalAppLanguage.current.currentLanguage)
     AnimatedVisibility(
         visible = message.isNotBlank(),
-        enter = fadeIn(),
-        exit = fadeOut()
+        enter = fadeIn(tween(220)) + expandVertically(tween(260)),
+        exit = fadeOut(tween(180)) + shrinkVertically(tween(220))
     ) {
         val containerColor = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
         val contentColor = if (isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer

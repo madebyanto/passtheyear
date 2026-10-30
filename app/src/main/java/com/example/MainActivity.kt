@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val languageManager = remember { LanguageManager() }
+            val languageManager = remember { LanguageManager(applicationContext) }
 
             CompositionLocalProvider(LocalAppLanguage provides languageManager) {
                 MyApplicationTheme {

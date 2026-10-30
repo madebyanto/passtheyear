@@ -23,6 +23,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import com.example.ui.util.AutofillFieldType
+import com.example.ui.util.autofill
+import com.example.ui.util.rememberAutofillCommit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.AppTopBar
@@ -40,6 +43,7 @@ fun SignUpScreen(
     val lang = LocalAppLanguage.current.currentLanguage
     val strings = getTranslations(lang)
     val focusManager = LocalFocusManager.current
+    val commitAutofill = rememberAutofillCommit()
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -51,7 +55,8 @@ fun SignUpScreen(
             AppTopBar(
                 title = strings.signUpTitle,
                 canNavigateBack = true,
-                onNavigateBack = onNavigateBackToLogin
+                onNavigateBack = onNavigateBackToLogin,
+                showLanguageSelector = true
             )
         },
         modifier = modifier.fillMaxSize()
@@ -150,6 +155,10 @@ fun SignUpScreen(
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .autofill(
+                        types = listOf(AutofillFieldType.Username, AutofillFieldType.Email),
+                        onFill = { email = it }
+                    )
                     .testTag("signup_email_input")
             )
 
@@ -182,6 +191,10 @@ fun SignUpScreen(
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .autofill(
+                        types = listOf(AutofillFieldType.NewPassword),
+                        onFill = { password = it }
+                    )
                     .testTag("signup_password_input")
             )
 
@@ -203,12 +216,17 @@ fun SignUpScreen(
                 keyboardActions = KeyboardActions(
                     onDone = {
                         focusManager.clearFocus()
-                        viewModel.signUp(email, password, confirmPassword, strings)
+                        commitAutofill()
+                        viewModel.signUp(email, password, confirmPassword, strings, lang.code)
                     }
                 ),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .autofill(
+                        types = listOf(AutofillFieldType.NewPassword),
+                        onFill = { confirmPassword = it }
+                    )
                     .testTag("signup_confirm_password_input")
             )
 
@@ -217,7 +235,8 @@ fun SignUpScreen(
             Button(
                 onClick = {
                     focusManager.clearFocus()
-                    viewModel.signUp(email, password, confirmPassword, strings)
+                    commitAutofill()
+                    viewModel.signUp(email, password, confirmPassword, strings, lang.code)
                 },
                 enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(14.dp),
